@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_firebase_full_app/product/utility/exceptions/custom_exception.dart';
+import 'package:flutter_firebase_full_app/product/utility/exceptions/firebase_custom_exception.dart';
 
 mixin IdModel {
   String? get id;
