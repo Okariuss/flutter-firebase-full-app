@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 enum IconConstants {
   microphone('microphone'),
-  appIcon('app_logo');
+  appIcon('app_logo'),
+  search('search');
 
   final String value;
   const IconConstants(this.value);

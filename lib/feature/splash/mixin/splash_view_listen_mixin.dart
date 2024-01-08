@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_full_app/feature/home/home_view.dart';
+import 'package:flutter_firebase_full_app/feature/authentication/authentication_view.dart';
 import 'package:flutter_firebase_full_app/feature/splash/splash_provider.dart';
 import 'package:flutter_firebase_full_app/feature/splash/splash_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,7 +26,7 @@ mixin SplashViewListenMixin on ConsumerState<SplashView> {
 
       if (next.isRedirectHome != null) {
         if (next.isRedirectHome!) {
-          context.route.navigateToPage(HomeView());
+          context.route.navigateToPage(AuthenticationView());
         } else {}
       }
     });
