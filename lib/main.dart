@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: StringConstants.appName,
       theme: AppTheme(context).theme,
-      home: const HomeView(),
+      home: HomeView(),
     );
   }
 }

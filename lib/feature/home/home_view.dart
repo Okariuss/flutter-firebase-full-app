@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_full_app/feature/home/home_provider.dart';
 import 'package:flutter_firebase_full_app/product/constants/index.dart';
 import 'package:flutter_firebase_full_app/product/enums/index.dart';
+import 'package:flutter_firebase_full_app/product/models/news_model.dart';
+import 'package:flutter_firebase_full_app/product/models/recommended_model.dart';
+import 'package:flutter_firebase_full_app/product/models/tag_model.dart';
+import 'package:flutter_firebase_full_app/product/utility/firebase/firebase_collections.dart';
 import 'package:flutter_firebase_full_app/product/widgets/text/subtitle_text.dart';
 import 'package:flutter_firebase_full_app/product/widgets/text/title_text.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
 
 part './widgets/chip_widgets.dart';
+part '../../product/widgets/card/home_news_card.dart';
+part '../../product/widgets/card/recommended_news_card.dart';
+part 'widgets/home_news_list_view.dart';
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+final _homeProvider = StateNotifierProvider<HomeProvider, HomeState>((ref) {
+  return HomeProvider();
+});
+
+class HomeView extends ConsumerStatefulWidget {
+  HomeView({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends ConsumerState<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(_homeProvider.notifier).fetchAndLoad();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +42,21 @@ class HomeView extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: context.padding.normal,
-          child: ListView(
+          child: Stack(
             children: [
-              _Header(),
-              _CustomField(),
-              _TagListView(),
-              _BrowseHorizontalListView(),
-              _RecommendedHeader(),
-              _RecommendedListView(),
+              ListView(
+                children: [
+                  _Header(),
+                  _CustomField(),
+                  _TagListView(),
+                  _BrowseHorizontalListView(),
+                  _RecommendedHeader(),
+                  _RecommendedListView(),
+                  // _HomeListView(),
+                ],
+              ),
+              if (ref.watch(_homeProvider).isLoading ?? false)
+                const Center(child: CircularProgressIndicator()),
             ],
           ),
         ),
@@ -54,104 +87,49 @@ class _CustomField extends StatelessWidget {
   }
 }
 
-class _TagListView extends StatelessWidget {
+class _TagListView extends ConsumerWidget {
   const _TagListView();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = ref.watch(_homeProvider.notifier);
+    final tags = ref.watch(_homeProvider).tags;
     return SizedBox(
       height: context.sized.dynamicHeight(.1),
       child: ListView.builder(
-        itemCount: 4,
+        itemCount: tags?.length ?? 0,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          if (index.isOdd) {
-            return _PassiveChip();
+          if (tags?[index].active ?? false) {
+            return _ActiveChip(tag: tags?[index], provider: provider);
           }
-          return _ActiveChip();
+          return _PassiveChip(
+            tag: tags?[index],
+            provider: provider,
+          );
         },
       ),
     );
   }
 }
 
-class _BrowseHorizontalListView extends StatelessWidget {
+class _BrowseHorizontalListView extends ConsumerWidget {
   const _BrowseHorizontalListView();
 
-  static const dummyImage =
-      'https://firebasestorage.googleapis.com/v0/b/flutter-news-47520.appspot.com/o/house.png?alt=media&token=4e1a9e3d-fd8c-4085-b256-08e9bade72d9';
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final news = ref.watch(_homeProvider).news;
     return SizedBox(
       height: context.sized.dynamicHeight(.3),
       child: ListView.builder(
-        itemCount: 4,
+        itemCount: news?.length ?? 0,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return _HorizontalCard(dummyImage: dummyImage);
+          return _HomeNewsCard(
+            newsItem: news?[index],
+          );
         },
       ),
-    );
-  }
-}
-
-class _HorizontalCard extends StatelessWidget {
-  const _HorizontalCard({
-    required this.dummyImage,
-  });
-
-  final String dummyImage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Padding(
-          padding: context.padding.onlyRightNormal,
-          child: Image.network(_BrowseHorizontalListView.dummyImage),
-        ),
-        Positioned.fill(
-          child: Padding(
-            padding: context.padding.horizontalNormal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.bookmark_border,
-                    color: ColorConstants.white,
-                    size: WidgetSize.iconNormal.value.toDouble(),
-                  ),
-                ),
-                Padding(
-                  padding: context.padding.onlyBottomMedium,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'POLITICS',
-                        style: context.general.textTheme.labelMedium?.copyWith(
-                          color: ColorConstants.greyLighter,
-                        ),
-                      ),
-                      Padding(
-                        padding: context.padding.onlyTopLow,
-                        child: Text(
-                          'The latest situation in the presidential election',
-                          style: context.general.textTheme.bodyLarge
-                              ?.copyWith(color: ColorConstants.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -173,50 +151,22 @@ class _RecommendedHeader extends StatelessWidget {
   }
 }
 
-class _RecommendedListView extends StatelessWidget {
+class _RecommendedListView extends ConsumerWidget {
   const _RecommendedListView();
 
-  static const dummyImage =
-      'https://firebasestorage.googleapis.com/v0/b/flutter-news-47520.appspot.com/o/simple_trick.png?alt=media&token=fd069490-75bc-47e0-9315-8c74db875813';
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recommended = ref.watch(_homeProvider).recommended;
+
     return ListView.builder(
-      itemCount: 5,
+      itemCount: recommended?.length ?? 0,
       shrinkWrap: true,
       physics: const ClampingScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
-        return _RecommendedCard(dummyImage: dummyImage);
+        return _RecommendedCard(
+          recommendedItem: recommended?[index],
+        );
       },
-    );
-  }
-}
-
-class _RecommendedCard extends StatelessWidget {
-  const _RecommendedCard({
-    required this.dummyImage,
-  });
-
-  final String dummyImage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: context.padding.normal,
-      child: Row(
-        children: [
-          Image.network(
-            _RecommendedListView.dummyImage,
-            height: ImageSize.normal.value.toDouble(),
-          ),
-          Expanded(
-            child: ListTile(
-              title: Text('UI/UX Design'),
-              subtitle:
-                  Text('A Simple Trick For Creating Color Palettes Quickly'),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

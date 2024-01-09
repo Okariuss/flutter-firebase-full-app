@@ -1,35 +1,54 @@
 part of '../home_view.dart';
 
 class _ActiveChip extends StatelessWidget {
-  const _ActiveChip();
+  const _ActiveChip({required this.tag, required this.provider});
+
+  final Tag? tag;
+  final HomeProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(
-        'label active',
-        style: context.general.textTheme.bodySmall
-            ?.copyWith(color: ColorConstants.white),
+    if (tag == null) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () async {
+        await provider.changeTagActiveStatus(tag!);
+      },
+      child: Chip(
+        label: Text(
+          tag?.name ?? '',
+          style: context.general.textTheme.bodySmall
+              ?.copyWith(color: ColorConstants.white),
+        ),
+        backgroundColor: ColorConstants.purplePrimary,
+        padding: context.padding.verticalLow + context.padding.horizontalMedium,
       ),
-      backgroundColor: ColorConstants.purplePrimary,
-      padding: context.padding.verticalLow + context.padding.horizontalMedium,
     );
   }
 }
 
 class _PassiveChip extends StatelessWidget {
-  const _PassiveChip();
+  const _PassiveChip({required this.tag, required this.provider});
+
+  final Tag? tag;
+  final HomeProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(
-        'label passive',
-        style: context.general.textTheme.bodySmall
-            ?.copyWith(color: ColorConstants.greyPrimary),
+    if (tag == null) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: () async {
+        await provider.changeTagActiveStatus(tag!);
+      },
+      child: Chip(
+        label: Text(
+          tag?.name ?? '',
+          style: context.general.textTheme.bodySmall
+              ?.copyWith(color: ColorConstants.greyPrimary),
+        ),
+        backgroundColor: ColorConstants.greyLighter,
+        padding: context.padding.verticalLow + context.padding.horizontalMedium,
       ),
-      backgroundColor: ColorConstants.greyLighter,
-      padding: context.padding.verticalLow + context.padding.horizontalMedium,
     );
   }
 }
