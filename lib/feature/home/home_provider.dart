@@ -11,22 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class HomeProvider extends StateNotifier<HomeState> with FirebaseUtility {
   HomeProvider() : super(HomeState());
 
+  List<Tag> _fullTagList = [];
+  List<Tag> get fullTagList => _fullTagList;
+
   Future<void> fetchNews() async {
     final items = await fetchList<News, News>(News(), FirebaseCollections.news);
     state = state.copyWith(news: items);
-    // final newsCollectionReference = FirebaseCollections.news.reference;
-
-    // final response = await newsCollectionReference.withConverter<News>(
-    //     fromFirestore: (snapshot, options) {
-    //   return const News().fromFirebase(snapshot);
-    // }, toFirestore: (value, options) {
-    //   return value.toJson();
-    // }).get();
-
-    // if (response.docs.isNotEmpty) {
-    //   final values = response.docs.map((e) => e.data()).toList();
-    //   state = state.copyWith(news: values);
-    // }
   }
 
   Future<void> fetchAndLoad() async {
@@ -76,19 +66,7 @@ class HomeProvider extends StateNotifier<HomeState> with FirebaseUtility {
   Future<void> fetchTags() async {
     final items = await fetchList<Tag, Tag>(Tag(), FirebaseCollections.tag);
     state = state.copyWith(tags: items);
-    // final newsCollectionReference = FirebaseCollections.tag.reference;
-
-    // final response = await newsCollectionReference.withConverter<Tag>(
-    //     fromFirestore: (snapshot, options) {
-    //   return const Tag().fromFirebase(snapshot);
-    // }, toFirestore: (value, options) {
-    //   return value.toJson();
-    // }).get();
-
-    // if (response.docs.isNotEmpty) {
-    //   final values = response.docs.map((e) => e.data()).toList();
-    //   state = state.copyWith(tags: values);
-    // }
+    _fullTagList = items ?? [];
   }
 
   Future<void> fetchRecommended() async {
@@ -102,17 +80,18 @@ class HomeState extends Equatable {
   final List<News>? news;
   final List<Tag>? tags;
   final List<Recommended>? recommended;
-
   final bool? isLoading;
+  final Tag? selectedTag;
 
   HomeState({
     this.news,
     this.tags,
     this.recommended,
     this.isLoading,
+    this.selectedTag,
   });
   @override
-  List<Object?> get props => [news, tags, recommended, isLoading];
+  List<Object?> get props => [news, tags, recommended, isLoading, selectedTag];
 
   HomeState copyWith({
     List<News>? news,

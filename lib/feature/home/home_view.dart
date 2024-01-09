@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_full_app/feature/home/home_provider.dart';
+import 'package:flutter_firebase_full_app/feature/home/widgets/home_search_delegate.dart';
 import 'package:flutter_firebase_full_app/product/constants/index.dart';
 import 'package:flutter_firebase_full_app/product/enums/index.dart';
 import 'package:flutter_firebase_full_app/product/models/news_model.dart';
@@ -11,9 +12,9 @@ import 'package:flutter_firebase_full_app/product/widgets/text/title_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
 
-part './widgets/chip_widgets.dart';
 part '../../product/widgets/card/home_news_card.dart';
 part '../../product/widgets/card/recommended_news_card.dart';
+part 'widgets/home_chip_widgets.dart';
 part 'widgets/home_news_list_view.dart';
 
 final _homeProvider = StateNotifierProvider<HomeProvider, HomeState>((ref) {
@@ -28,11 +29,24 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
+  final TextEditingController _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textController.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       ref.read(_homeProvider.notifier).fetchAndLoad();
+    });
+    ref.read(_homeProvider.notifier).addListener((state) {
+      if (state.selectedTag != null) {
+        _textController.text = state.selectedTag?.name ?? '';
+      }
     });
   }
 
@@ -47,7 +61,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ListView(
                 children: [
                   _Header(),
-                  _CustomField(),
+                  _CustomField(_textController),
                   _TagListView(),
                   _BrowseHorizontalListView(),
                   _RecommendedHeader(),
@@ -65,12 +79,22 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 }
 
-class _CustomField extends StatelessWidget {
-  const _CustomField();
+class _CustomField extends ConsumerWidget {
+  _CustomField(this._controller);
+  final TextEditingController _controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return TextField(
+      controller: _controller,
+      onTap: () async {
+        final response = await showSearch<Tag?>(
+            context: context,
+            delegate: HomeSearchDelegate(
+              ref.watch(_homeProvider).tags ?? [],
+            ));
+        ref.watch(_homeProvider.notifier).changeTagActiveStatus(response!);
+      },
       decoration: InputDecoration(
         suffixIcon: IconConstants.microphone.toImage,
         suffixIconColor: ColorConstants.greyPrimary,
