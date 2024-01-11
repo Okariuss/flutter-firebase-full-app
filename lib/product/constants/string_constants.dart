@@ -16,4 +16,11 @@ class StringConstants {
   static const String homeRecommended = 'Recommended for you';
   static const String homeSeeAll = 'See All';
   static const String homeSearchHint = 'Search';
+
+  // Home Create
+  static const String addNewItem = "Add New Item";
+  static const String category = "Category";
+  static const String title = "Title";
+  static const String send = "Send";
+  static const String selectCategory = "Select Category";
 }

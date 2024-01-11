@@ -40,6 +40,7 @@ class Recommended extends Equatable
       image: json['image'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
+      id: json['id'] as String?,
     );
   }
 }

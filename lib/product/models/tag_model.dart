@@ -38,6 +38,7 @@ class Tag extends Equatable with IdModel, BaseFirebaseModel<Tag> {
     return Tag(
       name: json['name'] as String?,
       active: json['active'] as bool?,
+      id: json['id'] as String?,
     );
   }
 }

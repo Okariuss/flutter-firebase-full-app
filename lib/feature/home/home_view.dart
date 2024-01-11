@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_full_app/feature/home/home_provider.dart';
 import 'package:flutter_firebase_full_app/feature/home/widgets/home_search_delegate.dart';
+import 'package:flutter_firebase_full_app/feature/home_create/home_create_view.dart';
 import 'package:flutter_firebase_full_app/product/constants/index.dart';
 import 'package:flutter_firebase_full_app/product/enums/index.dart';
 import 'package:flutter_firebase_full_app/product/models/news_model.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_firebase_full_app/product/widgets/text/subtitle_text.dar
 import 'package:flutter_firebase_full_app/product/widgets/text/title_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
+import 'package:kartal/src/widget/route/slide_route.dart';
 
 part '../../product/widgets/card/home_news_card.dart';
 part '../../product/widgets/card/recommended_news_card.dart';
@@ -52,8 +54,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: SafeArea(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final response = await context.route.navigateToPage<bool?>(
+            HomeCreateView(),
+            type: SlideType.LEFT,
+          );
+          if (response ?? false) {
+            ref.read(_homeProvider.notifier).fetchAndLoad();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: SafeArea(
         child: Padding(
           padding: context.padding.normal,
           child: Stack(
